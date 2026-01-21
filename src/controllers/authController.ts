@@ -1,7 +1,9 @@
 import { Request, Response } from "express"
 import slugify from "slugify";
+
 import User from "../models/User"
 import { hashPassword, validatePassword } from "../utils/auth"
+import { generateJWT } from "../utils/jwt";
 
 export class authController {
     static registerAccount = async (req: Request, res: Response) => {
@@ -22,6 +24,7 @@ export class authController {
             user.password = await hashPassword(password)
             user.handle = handle
             await user.save()
+           
             res.status(201).send('Registro creado exitosamente')
         } catch (error) {
             console.log('Error to create user, authController line 11-25')
@@ -33,21 +36,27 @@ export class authController {
         try {
             const { email, password } = req.body
            
-            const userExist = await User.findOne({email})
-            if(!userExist){
+            const user = await User.findOne({email})
+            if(!user){
                 return res.status(404).json({ message: "Usuario no encontrado" })
             }
 
             //validate password
-            const isPasswordCorrect = await validatePassword(password,userExist.password)
+            const isPasswordCorrect = await validatePassword(password,user.password)
             if(!isPasswordCorrect){
                 return res.status(401).json({ message: "Contraseña incorrecta" })
             }
-            res.send('Bienvenido')
+            const token = generateJWT({id:user._id})
+            return res.send(token)
+
         } catch (error) {
             console.log('Error log in, authController 41-50')
             res.status(500).json({ message: "Error al iniciar sesión" })
         }
 
+    }
+
+    static getUser = async(req: Request, res: Response) => {
+        return res.json(req.user)
     }
 }  
