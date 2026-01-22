@@ -26,4 +26,10 @@ router.post('/login',
     authController.login)
 
 router.get('/user', isAuthenticate, authController.getUser)
+
+router.patch('/user',
+    body('handle').notEmpty().withMessage('El alias es obligatorio'),
+    handleInputErrors,
+    isAuthenticate,
+    authController.updateProfile)
 export default router

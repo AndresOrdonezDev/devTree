@@ -1,9 +1,10 @@
-import mongoose, { Schema } from "mongoose";
-export interface IUser {
+import mongoose, { Schema, Document } from "mongoose";
+export interface IUser extends Document {
     handle:string,
     name:string,
     email:string,
-    password:string
+    password:string,
+    description:string
 }
 const userSchema = new Schema({
     handle: {
@@ -29,7 +30,11 @@ const userSchema = new Schema({
         type:String,
         require:true,
         trim:true
-    }
+    },
+    description: {
+        type:String,
+        default:'',
+    },
 })
 
 const User = mongoose.model<IUser>('User',userSchema)

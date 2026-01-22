@@ -24,7 +24,7 @@ export class authController {
             user.password = await hashPassword(password)
             user.handle = handle
             await user.save()
-           
+
             res.status(201).send('Registro creado exitosamente')
         } catch (error) {
             console.log('Error to create user, authController line 11-25')
@@ -35,18 +35,18 @@ export class authController {
     static login = async (req: Request, res: Response) => {
         try {
             const { email, password } = req.body
-           
-            const user = await User.findOne({email})
-            if(!user){
+
+            const user = await User.findOne({ email })
+            if (!user) {
                 return res.status(404).json({ message: "Usuario no encontrado" })
             }
 
             //validate password
-            const isPasswordCorrect = await validatePassword(password,user.password)
-            if(!isPasswordCorrect){
+            const isPasswordCorrect = await validatePassword(password, user.password)
+            if (!isPasswordCorrect) {
                 return res.status(401).json({ message: "Contraseña incorrecta" })
             }
-            const token = generateJWT({id:user._id})
+            const token = generateJWT({ id: user._id })
             return res.send(token)
 
         } catch (error) {
@@ -56,7 +56,27 @@ export class authController {
 
     }
 
-    static getUser = async(req: Request, res: Response) => {
+    static getUser = async (req: Request, res: Response) => {
         return res.json(req.user)
+    }
+
+    static updateProfile = async (req: Request, res: Response) => {
+        try {
+            const { description } = req.body
+
+            const handle = slugify(req.body.handle, '');
+            const handleExist = await User.findOne({ handle })
+            if (handleExist && handleExist.email !== req.user.email) {
+                return res.status(409).json({ message: "El Alias ya existe" })
+            }
+
+            req.user.handle = handle
+            req.user.description = description
+            await req.user.save()
+            res.send('updated success')
+        } catch (e) {
+            const error = new Error('Hubo un error en el servidor')
+            res.status(500).json({ message: error.message })
+        }
     }
 }  
