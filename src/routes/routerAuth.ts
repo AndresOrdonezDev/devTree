@@ -32,4 +32,7 @@ router.patch('/user',
     handleInputErrors,
     isAuthenticate,
     authController.updateProfile)
+
+router.post('/user/image', isAuthenticate, authController.uploadImage)
+
 export default router
